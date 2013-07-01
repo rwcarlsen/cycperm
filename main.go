@@ -48,17 +48,38 @@ func main() {
 	fbase := filepath.Base(fname)
 	fbase = fbase[:len(fbase)-len(filepath.Ext(fbase))]
 	fbase = fbase[:len(fbase)-len(filepath.Ext(fbase))]
+
+	legend := map[string]map[string]interface{}{}
+
 	for i, perm := range perms {
 		vals := map[string]interface{}{}
-		for i, index := range perm {
-			vals[params[i][0].(string)] = params[i][index+1]
+		for j, index := range perm {
+			vals[params[j][0].(string)] = params[j][index+1]
 		}
-		f, err := os.Create(fmt.Sprintf("%v-%v.xml", fbase, i+1))
+		name := fmt.Sprintf("%v-%v.xml", fbase, i+1)
+		f, err := os.Create(name)
 		if err != nil {
 			log.Fatal(err)
 		}
 		tmpl.Execute(f, vals)
 		f.Close()
+
+		legend[name] = vals
+	}
+
+	data, err = json.MarshalIndent(legend, "", "    ")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	f, err := os.Create(fmt.Sprintf("%v-legend.json", fbase))
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+
+	if _, err := f.Write(data); err != nil {
+		log.Fatal(err)
 	}
 }
 
